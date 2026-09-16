@@ -1,0 +1,16 @@
+{
+  "name": "ceub-music",
+  "version": "1.0.0",
+  "description": "CEUB Music — Plataforma de Streaming com Redis NoSQL",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js",
+    "seed": "node seed.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "ioredis": "^5.4.1",
+    "cors": "^2.8.5"
+  }
+}

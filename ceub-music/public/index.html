@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CEUB Music — Plataforma de Streaming NoSQL</title>
+  <meta name="description" content="Plataforma de streaming de música acadêmica desenvolvida para o CEUB com Redis NoSQL.">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- ==================== SIDEBAR ==================== -->
+  <aside class="sidebar">
+    <div class="brand-header">
+      <div class="brand-logo-mark">
+        <!-- Modern Sound Wave Icon -->
+        <svg viewBox="0 0 24 24">
+          <path d="M12 3v18M8 7v10M4 11v2M16 7v10M20 11v2" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="brand-info">
+        <h1>CEUB Music</h1>
+        <span class="brand-badge">Campus Taguatinga</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div>
+        <div class="nav-section-title">Navegação</div>
+        <div class="nav-list">
+          <button class="nav-item active" data-page="home">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Início
+          </button>
+          <button class="nav-item" data-page="rankings">
+            <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+            Em Alta (Rankings)
+          </button>
+          <button class="nav-item" data-page="playlists">
+            <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            Playlists
+          </button>
+          <button class="nav-item" data-page="history">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Histórico
+          </button>
+          <button class="nav-item" data-page="queue">
+            <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            Fila de Espera
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div class="nav-section-title">Laboratório NoSQL</div>
+        <div class="nav-list">
+          <button class="nav-item" data-page="redis-demo">
+            <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            Estruturas Redis
+          </button>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="user-selector-box">
+          <label>Perfil do Aluno</label>
+          <select id="userSelect">
+            <option value="1">Ana Silva (RA: 221045)</option>
+            <option value="2">Carlos Souza (RA: 221089)</option>
+            <option value="3">Maria Oliveira (RA: 221142)</option>
+          </select>
+        </div>
+
+        <div id="connectionStatus" class="status-pill disconnected">
+          <div class="status-indicator">
+            <span class="status-dot"></span>
+            <span id="statusText">Redis Offline</span>
+          </div>
+          <span style="font-size: 10px; color: var(--text-muted);">Porta 6379</span>
+        </div>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main class="main-content">
+
+    <!-- HOME PAGE -->
+    <div id="page-home" class="page active">
+      <div class="hero-card">
+        <div class="hero-tag">Projeto NoSQL 2026 • Grupo Centauros</div>
+        <h2>CEUB Music Streaming</h2>
+        <p>Arquitetura em tempo real com Redis: sessões voláteis com TTL, rankings ordenados em Sorted Sets, listas de reprodução FIFO e estruturas Hash em memória ultrarrápida.</p>
+      </div>
+
+      <!-- Metrics -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-icon-wrap">
+            <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          </div>
+          <div>
+            <div class="metric-val" id="stat-tracks">20</div>
+            <div class="metric-lbl">Faixas no Catálogo</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon-wrap">
+            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </div>
+          <div>
+            <div class="metric-val" id="stat-plays">—</div>
+            <div class="metric-lbl">Plays Computados Hoje</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon-wrap">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
+          </div>
+          <div>
+            <div class="metric-val" id="stat-playlists">—</div>
+            <div class="metric-lbl">Suas Playlists</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon-wrap">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div>
+            <div class="metric-val" id="stat-history">—</div>
+            <div class="metric-lbl">Execuções Recentes</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top 5 do dia -->
+      <div class="section-headline">
+        <h3>
+          <svg style="width:18px;height:18px;stroke:var(--ceub-magenta);fill:none;" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          Top 5 Mais Ouvidas do Campus
+        </h3>
+        <button class="section-action-btn" onclick="navigateTo('rankings')">Ver ranking completo →</button>
+      </div>
+      <div class="track-list" id="home-top5"></div>
+
+      <!-- Histórico recente -->
+      <div style="margin-top: 36px;">
+        <div class="section-headline">
+          <h3>
+            <svg style="width:18px;height:18px;stroke:var(--ceub-magenta);fill:none;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Ouvidas Recentemente por Você
+          </h3>
+          <button class="section-action-btn" onclick="navigateTo('history')">Ver histórico completo →</button>
+        </div>
+        <div class="track-list" id="home-recent"></div>
+      </div>
+    </div>
+
+    <!-- RANKINGS PAGE -->
+    <div id="page-rankings" class="page">
+      <div class="section-headline" style="margin-bottom: 8px;">
+        <h3>Rankings e Tendências</h3>
+      </div>
+      <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">
+        Computados em tempo real via <strong>Redis Sorted Set</strong> através de operações <code>ZINCRBY</code> e consultas <code>ZREVRANGE</code> de alta performance.
+      </p>
+
+      <div class="tab-group">
+        <button class="tab-pill active" data-period="daily">Mais Tocadas Hoje</button>
+        <button class="tab-pill" data-period="monthly">Mais Tocadas no Mês</button>
+      </div>
+
+      <div class="track-list" id="ranking-list"></div>
+
+      <div class="redis-console-card">
+        <div class="redis-console-header">
+          <span><svg style="width:14px;height:14px;stroke:var(--ceub-magenta);fill:none;" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg> Telemetria Redis (Sorted Set)</span>
+          <span class="type-badge type-zset">ZSET</span>
+        </div>
+        <div class="redis-cmd-block" id="ranking-redis-cmd">ZREVRANGE ranking:global:diario:{data} 0 14 WITHSCORES</div>
+        <div class="redis-output-block" id="ranking-redis-result">Aguardando dados...</div>
+      </div>
+    </div>
+
+    <!-- PLAYLISTS PAGE -->
+    <div id="page-playlists" class="page">
+      <div class="section-headline" style="margin-bottom: 8px;">
+        <h3>Playlists do Aluno</h3>
+      </div>
+      <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">
+        Coleções organizadas em <strong>Redis Sets</strong> (índice de chaves) e <strong>Redis Hashes</strong> (metadados e faixas ordenadas).
+      </p>
+
+      <div class="playlists-grid" id="playlists-grid"></div>
+
+      <!-- Playlist Details Subview -->
+      <div id="playlist-detail" style="display: none;">
+        <div class="playlist-header-banner">
+          <div class="playlist-banner-art" id="playlist-banner-cover"></div>
+          <div style="flex:1;">
+            <span class="hero-tag" style="margin-bottom: 6px;">Playlist Salva no Redis</span>
+            <h2 id="playlist-detail-name" style="font-family: var(--font-display); font-size: 26px; color:#FFFFFF; margin-bottom: 6px;"></h2>
+            <p id="playlist-detail-meta" style="color: var(--text-secondary); font-size: 13px;"></p>
+          </div>
+          <button class="section-action-btn" onclick="closePlaylistDetail()">← Voltar às Playlists</button>
+        </div>
+
+        <div class="track-list" id="playlist-tracks"></div>
+
+        <div class="redis-console-card">
+          <div class="redis-console-header">
+            <span>Telemetria Redis (Hash & Set)</span>
+            <span class="type-badge type-hash">HASH</span>
+          </div>
+          <div class="redis-cmd-block" id="playlist-redis-cmd"></div>
+          <div class="redis-output-block" id="playlist-redis-result"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY PAGE -->
+    <div id="page-history" class="page">
+      <div class="section-headline" style="margin-bottom: 8px;">
+        <h3>Histórico de Reprodução</h3>
+      </div>
+      <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">
+        Implementado com <strong>Redis List</strong> (operações <code>LPUSH</code> no topo e corte com <code>LTRIM</code> para limitar às últimas 100 músicas).
+      </p>
+
+      <div class="track-list" id="history-list"></div>
+
+      <div class="redis-console-card">
+        <div class="redis-console-header">
+          <span>Telemetria Redis (List)</span>
+          <span class="type-badge type-list">LIST</span>
+        </div>
+        <div class="redis-cmd-block" id="history-redis-cmd">LRANGE historico:usuario:{id} 0 19</div>
+        <div class="redis-output-block" id="history-redis-result">Aguardando dados...</div>
+      </div>
+    </div>
+
+    <!-- QUEUE PAGE -->
+    <div id="page-queue" class="page">
+      <div class="section-headline" style="margin-bottom: 8px;">
+        <h3>Fila de Reprodução (FIFO)</h3>
+      </div>
+      <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">
+        Fila First-In, First-Out estruturada em <strong>Redis List</strong> (adiciona com <code>RPUSH</code> e consome a próxima com <code>LPOP</code>).
+      </p>
+
+      <div class="track-list" id="queue-list"></div>
+
+      <div class="redis-console-card">
+        <div class="redis-console-header">
+          <span>Telemetria Redis (Queue FIFO)</span>
+          <span class="type-badge type-list">LIST</span>
+        </div>
+        <div class="redis-cmd-block" id="queue-redis-cmd">LRANGE fila:usuario:{id} 0 -1</div>
+        <div class="redis-output-block" id="queue-redis-result">Aguardando dados...</div>
+      </div>
+    </div>
+
+    <!-- REDIS DEMO PAGE -->
+    <div id="page-redis-demo" class="page">
+      <div class="section-headline" style="margin-bottom: 8px;">
+        <h3>Laboratório NoSQL: Estruturas Redis em Ação</h3>
+      </div>
+      <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 24px;">
+        Visão completa da modelagem de dados apresentada na documentação técnica do Grupo Centauros.
+      </p>
+
+      <div class="redis-demo-grid">
+        <!-- Hash: Sessao -->
+        <div class="redis-demo-box">
+          <h4><span class="type-badge type-hash">HASH</span> Sessão de Reprodução</h4>
+          <p>Armazena estado volátil do player (posição, status, dispositivo). Possui <strong>TTL de 7200s</strong> renovado a cada interação.</p>
+          <div class="redis-cmd-block">HGETALL sessao:usuario:{id}&#10;EXPIRE sessao:usuario:{id} 7200</div>
+          <div class="redis-output-block" id="redis-demo-session">Dê Play em qualquer música para abrir uma sessão.</div>
+        </div>
+
+        <!-- Sorted Set: Rankings -->
+        <div class="redis-demo-box">
+          <h4><span class="type-badge type-zset">ZSET</span> Rankings Globais e de Gênero</h4>
+          <p>Score ordenado computado atômica e instantaneamente. Permite consultas <em>Top N</em> com complexidade O(log(N) + M).</p>
+          <div class="redis-cmd-block">ZINCRBY ranking:global:diario:{data} 1 {trackId}&#10;ZREVRANGE ranking:global:diario:{data} 0 4 WITHSCORES</div>
+          <div class="redis-output-block" id="redis-demo-ranking">Carregando dados...</div>
+        </div>
+
+        <!-- String/INCR: Contadores -->
+        <div class="redis-demo-box">
+          <h4><span class="type-badge type-string">STRING</span> Contadores Atômicos</h4>
+          <p>Contadores de execuções com incremento <code>INCR</code> O(1), imune a condições de corrida em alta concorrência.</p>
+          <div class="redis-cmd-block">INCR plays:total:track:{trackId}&#10;GET plays:total:track:{trackId}</div>
+          <div class="redis-output-block" id="redis-demo-counter">Carregando dados...</div>
+        </div>
+
+        <!-- List: Historico -->
+        <div class="redis-demo-box">
+          <h4><span class="type-badge type-list">LIST</span> Histórico Recente</h4>
+          <p>Inserção no início da lista via <code>LPUSH</code> e contenção de tamanho por <code>LTRIM</code> para otimização de RAM.</p>
+          <div class="redis-cmd-block">LPUSH historico:usuario:{id} {json}&#10;LTRIM historico:usuario:{id} 0 99</div>
+          <div class="redis-output-block" id="redis-demo-history">Carregando dados...</div>
+        </div>
+
+        <!-- List: Fila -->
+        <div class="redis-demo-box">
+          <h4><span class="type-badge type-list">LIST</span> Fila FIFO de Próximas Faixas</h4>
+          <p>Enfileiramento na ponta direita (<code>RPUSH</code>) e consumo da faixa atual na ponta esquerda (<code>LPOP</code>).</p>
+          <div class="redis-cmd-block">RPUSH fila:usuario:{id} {track}&#10;LPOP fila:usuario:{id}</div>
+          <div class="redis-output-block" id="redis-demo-queue">Carregando dados...</div>
+        </div>
+
+        <!-- Hash/Set: Playlists -->
+        <div class="redis-demo-box">
+          <h4><span class="type-badge type-hash">HASH + SET</span> Playlists Customizadas</h4>
+          <p>Metadados da playlist e mapeamento de faixas guardados em Hashes, indexados pelo Set de slugs do usuário.</p>
+          <div class="redis-cmd-block">HGETALL playlist:usuario:{id}:{slug}&#10;HGETALL playlist:faixas:usuario:{id}:{slug}&#10;SMEMBERS playlists:usuario:{id}</div>
+          <div class="redis-output-block" id="redis-demo-playlists">Carregando dados...</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ==================== BOTTOM AUDIO PLAYER ==================== -->
+  <footer class="player-bar">
+    <div class="player-now-playing">
+      <div class="player-cover-thumb" id="player-cover">
+        <svg style="width:20px;height:20px;stroke:var(--text-muted);fill:none;" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      </div>
+      <div class="player-text-wrap">
+        <div class="player-song-title" id="player-track-name">Nenhuma música em execução</div>
+        <div class="player-song-artist" id="player-track-artist">Selecione uma faixa para ouvir</div>
+      </div>
+    </div>
+
+    <div class="player-controls-center">
+      <div class="playback-buttons">
+        <button class="btn-ctrl" id="btn-prev" title="Anterior">
+          <svg viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2"/></svg>
+        </button>
+        <button class="btn-ctrl btn-play-pause" id="btn-play" title="Play / Pause">
+          <svg id="play-icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </button>
+        <button class="btn-ctrl" id="btn-next" title="Próxima da fila">
+          <svg viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"/></svg>
+        </button>
+      </div>
+
+      <div class="scrubber-row">
+        <span class="time-stamp" id="time-current">0:00</span>
+        <div class="scrubber-track" id="progress-bar">
+          <div class="scrubber-fill" id="progress-fill"></div>
+        </div>
+        <span class="time-stamp right" id="time-total">0:00</span>
+      </div>
+    </div>
+
+    <div class="player-actions-right">
+      <div class="volume-slider-wrap">
+        <svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        <div class="volume-bar">
+          <div class="volume-fill"></div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<script src="/js/app.js"></script>
+</body>
+</html>

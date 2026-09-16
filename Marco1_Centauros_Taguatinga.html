@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Marco 1 — Centauros — CEUB Music</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code:wght@400;500&display=swap');
+
+@page {
+    size: A4;
+    margin: 2.2cm 2cm;
+}
+
+@media print {
+    body { font-size: 10.5pt; }
+    pre { break-inside: avoid; }
+    table { break-inside: avoid; }
+    h1, h2, h3, h4 { break-after: avoid; }
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.65;
+    color: #1a1a2e;
+    max-width: 210mm;
+    margin: 0 auto;
+    padding: 2cm;
+    background: #fff;
+}
+
+h1 {
+    font-size: 20pt;
+    font-weight: 700;
+    color: #0f2744;
+    border-bottom: 3px solid #1a5276;
+    padding-bottom: 10px;
+    margin-top: 32px;
+    margin-bottom: 16px;
+    letter-spacing: -0.3px;
+}
+
+h2 {
+    font-size: 15pt;
+    font-weight: 700;
+    color: #1a5276;
+    border-bottom: 1.5px solid #d5e8f0;
+    padding-bottom: 6px;
+    margin-top: 28px;
+    margin-bottom: 14px;
+}
+
+h3 {
+    font-size: 12.5pt;
+    font-weight: 600;
+    color: #2980b9;
+    margin-top: 22px;
+    margin-bottom: 10px;
+}
+
+h4 {
+    font-size: 11pt;
+    font-weight: 600;
+    color: #3498db;
+    margin-top: 18px;
+    margin-bottom: 8px;
+}
+
+p {
+    margin-bottom: 10px;
+    text-align: justify;
+}
+
+strong {
+    color: #0f2744;
+    font-weight: 600;
+}
+
+em {
+    font-style: italic;
+    color: #2c3e50;
+}
+
+hr {
+    border: none;
+    border-top: 2px solid #d5e8f0;
+    margin: 28px 0;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 10pt;
+    border: 1px solid #bdc3c7;
+}
+
+thead th {
+    background: linear-gradient(135deg, #0f2744, #1a5276);
+    color: #fff;
+    font-weight: 600;
+    padding: 10px 12px;
+    text-align: left;
+    border: 1px solid #0f2744;
+}
+
+td {
+    padding: 8px 12px;
+    border: 1px solid #d5dbde;
+    vertical-align: top;
+}
+
+tr:nth-child(even) {
+    background-color: #f0f6fa;
+}
+
+tr:hover {
+    background-color: #e8f0f6;
+}
+
+/* Code */
+code {
+    font-family: 'Fira Code', 'Consolas', 'Courier New', monospace;
+    background-color: #ecf0f3;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 9.5pt;
+    color: #c0392b;
+}
+
+pre {
+    background: #1a1a2e;
+    color: #e8e8e8;
+    padding: 16px 20px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 9pt;
+    line-height: 1.55;
+    margin: 14px 0;
+    border-left: 4px solid #2980b9;
+}
+
+pre code {
+    background: none;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+    border-radius: 0;
+}
+
+/* Blockquotes */
+blockquote {
+    border-left: 4px solid #2980b9;
+    margin: 16px 0;
+    padding: 12px 18px;
+    background-color: #eaf2f8;
+    color: #2c3e50;
+    font-size: 10.5pt;
+    border-radius: 0 6px 6px 0;
+}
+
+blockquote strong {
+    color: #1a5276;
+}
+
+/* Lists */
+ul, ol {
+    margin: 8px 0 8px 24px;
+}
+
+li {
+    margin: 5px 0;
+}
+
+li strong {
+    color: #1a5276;
+}
+</style>
+</head>
+<body>
+<h1>Marco 1 — Projeto Incremental</h1>
+<h2>Bancos de Dados NoSQL: Persistência e Distribuição de Big Data</h2>
+<p><strong>Grupo:</strong> Centauros (3 alunos)<br />
+<strong>Campus:</strong> Taguatinga<br />
+<strong>Data de Entrega:</strong> 29/09/2026</p>
+<hr />
+<h1>CEUB Music — Plataforma de Streaming de Música</h1>
+<hr />
+<h2>1. Descrição do Problema</h2>
+<h3>1.1 Contexto da Aplicação</h3>
+<p>O <strong>CEUB Music</strong> é uma plataforma fictícia de streaming de música voltada à comunidade universitária, inspirada em serviços como Spotify e Deezer. A plataforma permite que estudantes e funcionários dos campi do CEUB descubram, ouçam e organizem músicas em playlists personalizadas, enquanto acompanham o que está em alta entre seus colegas em tempo real.</p>
+<p>O sistema precisa suportar <strong>quatro operações centrais</strong> que formam o núcleo da experiência do usuário:</p>
+<ol>
+<li>
+<p><strong>Sessão de reprodução em tempo real</strong> — quando um usuário dá play em uma música, o sistema registra a reprodução e mantém o estado da sessão ativa (música atual, posição no tempo, fila de reprodução). Essa informação é volátil: precisa estar disponível instantaneamente para o player do usuário, mas não precisa sobreviver por semanas caso a sessão expire.</p>
+</li>
+<li>
+<p><strong>Histórico de reproduções por usuário</strong> — toda música ouvida é registrada em um log persistente, permitindo que o usuário acesse seu histórico ("ouvidas recentemente") e que o sistema alimente algoritmos futuros de recomendação. Esse histórico cresce continuamente e precisa ser consultado por usuário e por período de tempo.</p>
+</li>
+<li>
+<p><strong>Rankings e contadores em tempo real</strong> — o sistema mantém rankings atualizados das músicas mais ouvidas globalmente, por gênero e por período (diário, semanal, mensal). Esses rankings alimentam a tela "Em Alta" da plataforma e precisam ser atualizados a cada nova reprodução, sem que a atualização bloqueie a experiência do usuário.</p>
+</li>
+<li>
+<p><strong>Playlists do usuário</strong> — cada usuário pode criar, editar e organizar múltiplas playlists. Cada playlist contém uma lista ordenada de músicas com metadados básicos (nome, artista, duração). A playlist precisa ser lida rapidamente como um bloco único (para exibir na tela do player), e alterações como reordenar ou adicionar faixas devem ser leves.</p>
+</li>
+</ol>
+<h3>1.2 Requisitos Principais</h3>
+<table>
+<thead>
+<tr>
+<th>Requisito</th>
+<th>Descrição</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Alta disponibilidade do player</strong></td>
+<td>O usuário nunca deve ver um erro ao dar play — a sessão e a fila de reprodução devem estar sempre acessíveis, mesmo que uma réplica esteja temporariamente fora.</td>
+</tr>
+<tr>
+<td><strong>Escritas de alta frequência</strong></td>
+<td>Cada play gera pelo menos 3 escritas simultâneas: sessão ativa, histórico e incremento no ranking. Em horários de pico, isso multiplica rapidamente.</td>
+</tr>
+<tr>
+<td><strong>Leitura analítica por período</strong></td>
+<td>O painel "Em Alta" e o histórico do usuário são consultas previsíveis: "Top 50 da semana", "últimas 20 músicas ouvidas pelo usuário X".</td>
+</tr>
+<tr>
+<td><strong>Escalabilidade horizontal</strong></td>
+<td>O sistema deve suportar crescimento de usuários e de catálogo sem redesenho — adicionar nós, não trocar o servidor.</td>
+</tr>
+<tr>
+<td><strong>Baixa latência no player</strong></td>
+<td>Operações que afetam a experiência em tempo real (play, pause, próxima faixa) precisam de respostas em milissegundos, não em centenas de milissegundos.</td>
+</tr>
+</tbody>
+</table>
+<h3>1.3 Estimativa de Volume de Dados</h3>
+<p>A plataforma é dimensionada para o primeiro ano de operação na comunidade CEUB:</p>
+<table>
+<thead>
+<tr>
+<th>Métrica</th>
+<th>Estimativa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Usuários ativos</td>
+<td>8.000 (alunos + funcionários dos campi)</td>
+</tr>
+<tr>
+<td>Catálogo de músicas</td>
+<td>500.000 faixas</td>
+</tr>
+<tr>
+<td>Reproduções por dia (média)</td>
+<td>~40.000 (média de 5 músicas/dia por usuário ativo)</td>
+</tr>
+<tr>
+<td>Reproduções por dia (pico)</td>
+<td>~80.000 (intervalos de aula, almoço)</td>
+</tr>
+<tr>
+<td>Pico de escritas por segundo</td>
+<td>~200 escritas/s em janelas de 10 minutos nos horários de pico</td>
+</tr>
+<tr>
+<td>Playlists por usuário (média)</td>
+<td>4 playlists, ~25 músicas cada</td>
+</tr>
+<tr>
+<td>Crescimento do histórico</td>
+<td>~14,6 milhões de registros/ano</td>
+</tr>
+<tr>
+<td>Tamanho médio de um registro de reprodução</td>
+<td>~200 bytes → ~2,9 GB/ano de histórico bruto</td>
+</tr>
+</tbody>
+</table>
+<p>Os horários de pico são concentrados: <strong>intervalos de aula (9h50–10h10, 11h30–11h50)</strong> e <strong>horário de almoço (12h–13h30)</strong> acumulam mais de 60% do tráfego diário em janelas curtas, gerando picos de escritas muito superiores à média.</p>
+<hr />
+<h2>2. Modelagem Inicial dos Dados</h2>
+<p>O grupo optou por combinar <strong>duas famílias NoSQL</strong>, cada uma aplicada ao tipo de dado e padrão de acesso para o qual foi projetada:</p>
+<ul>
+<li><strong>Chave-Valor (Redis)</strong> — para dados voláteis, de acesso ultrarrápido e por chave única: sessão de reprodução, fila do player, playlists e rankings em tempo real.</li>
+<li><strong>Wide-Column (Cassandra)</strong> — para dados duráveis, de grande volume e consultados por partição + intervalo temporal: histórico de reproduções e logs analíticos.</li>
+</ul>
+<h3>2.1 Dados em Chave-Valor — Redis</h3>
+<h4>Sessão de reprodução ativa (Hash com TTL)</h4>
+<pre><code>sessao:usuario:5021
+  musica_atual    -&gt; &quot;track:88201&quot;
+  posicao_seg     -&gt; 147
+  status          -&gt; &quot;playing&quot;
+  inicio          -&gt; &quot;2026-09-28T14:32:00Z&quot;
+
+TTL: 7200s (2 horas — expira se o usuário ficar inativo)
+</code></pre>
+<p><strong>Justificativa da estrutura:</strong> o Hash do Redis agrupa todos os campos da sessão sob uma única chave, permitindo ler ou atualizar campos individuais (<code>HGET</code>, <code>HSET</code>) sem transferir o objeto inteiro. O TTL garante limpeza automática de sessões abandonadas — implementando o conceito de <strong>soft state</strong> do modelo BASE.</p>
+<h4>Fila de reprodução do usuário (List)</h4>
+<pre><code>fila:usuario:5021
+  [0] &quot;track:44102&quot;
+  [1] &quot;track:77503&quot;
+  [2] &quot;track:91204&quot;
+  [3] &quot;track:33067&quot;
+</code></pre>
+<p><strong>Justificativa:</strong> a List do Redis suporta <code>LPUSH</code>, <code>RPUSH</code>, <code>LPOP</code> e acesso por índice, modelando naturalmente uma fila de reprodução onde faixas são adicionadas ao final e consumidas pela frente (FIFO), ou reordenadas pelo usuário.</p>
+<h4>Playlist do usuário (Hash)</h4>
+<pre><code>playlist:usuario:5021:meu_rock
+  nome         -&gt; &quot;Rock para estudar&quot;
+  criada_em    -&gt; &quot;2026-08-15T10:00:00Z&quot;
+  total_faixas -&gt; 3
+
+playlist:faixas:usuario:5021:meu_rock
+  0 -&gt; {&quot;track_id&quot;: &quot;track:88201&quot;, &quot;nome&quot;: &quot;Bohemian Rhapsody&quot;, &quot;artista&quot;: &quot;Queen&quot;, &quot;duracao&quot;: 354}
+  1 -&gt; {&quot;track_id&quot;: &quot;track:44102&quot;, &quot;nome&quot;: &quot;Stairway to Heaven&quot;, &quot;artista&quot;: &quot;Led Zeppelin&quot;, &quot;duracao&quot;: 482}
+  2 -&gt; {&quot;track_id&quot;: &quot;track:91204&quot;, &quot;nome&quot;: &quot;Hotel California&quot;, &quot;artista&quot;: &quot;Eagles&quot;, &quot;duracao&quot;: 391}
+</code></pre>
+<p><strong>Justificativa:</strong> separar metadados da playlist (Hash) das faixas (Hash ordenado por índice numérico) permite listar playlists do usuário sem carregar todas as faixas. A leitura completa da playlist para o player usa um único <code>HGETALL</code>.</p>
+<h4>Rankings em tempo real (Sorted Set)</h4>
+<pre><code>ranking:global:diario:2026-09-28
+  ZADD track:88201 1427    -&gt; (1.427 reproduções no dia)
+  ZADD track:44102 1183    -&gt; (1.183 reproduções no dia)
+  ZADD track:77503  892    -&gt; (892 reproduções no dia)
+
+ranking:genero:rock:semanal:2026-W39
+  ZADD track:88201 8340
+  ZADD track:44102 6721
+
+ranking:global:mensal:2026-09
+  ZADD track:88201 41200
+</code></pre>
+<p><strong>Justificativa:</strong> o <strong>Sorted Set</strong> do Redis é a estrutura ideal para rankings — cada <code>ZINCRBY</code> incrementa o score de uma faixa em <strong>O(log N)</strong> a cada reprodução, e o <code>ZREVRANGE</code> retorna o Top N em tempo real sem varredura. As chaves são particionadas por período (diário, semanal, mensal), permitindo expirar rankings antigos automaticamente com TTL e evitando sets de tamanho ilimitado.</p>
+<h4>Contadores atômicos simples (String)</h4>
+<pre><code>plays:total:track:88201  -&gt;  234.567    (INCR a cada reprodução)
+plays:total:artista:queen -&gt; 1.892.043  (INCR a cada reprodução)
+</code></pre>
+<p><strong>Justificativa:</strong> o <code>INCR</code> do Redis é atômico e executa em <strong>O(1)</strong>, suportando centenas de incrementos por segundo sem contenção — ideal para contadores de reprodução que atualizam a cada play.</p>
+<hr />
+<h3>2.2 Dados em Wide-Column — Cassandra</h3>
+<h4>Histórico de reproduções por usuário</h4>
+<pre><code class="language-sql">CREATE TABLE historico_por_usuario (
+    usuario_id     INT,
+    reproduzido_em TIMESTAMP,
+    track_id       TEXT,
+    nome_musica    TEXT,
+    artista        TEXT,
+    duracao_seg    INT,
+    dispositivo    TEXT,
+    PRIMARY KEY (usuario_id, reproduzido_em)
+) WITH CLUSTERING ORDER BY (reproduzido_em DESC);
+</code></pre>
+<p><strong>Modelagem query-first:</strong> a consulta mais frequente é <em>"últimas N músicas ouvidas pelo usuário X"</em>:</p>
+<pre><code class="language-sql">SELECT * FROM historico_por_usuario
+WHERE usuario_id = 5021
+ORDER BY reproduzido_em DESC
+LIMIT 20;
+</code></pre>
+<ul>
+<li><strong>Partition key:</strong> <code>usuario_id</code> — garante que todo o histórico de um usuário reside no mesmo nó, eliminando consultas cross-partition.</li>
+<li><strong>Clustering column:</strong> <code>reproduzido_em DESC</code> — os dados já são armazenados em ordem cronológica inversa no disco, tornando a consulta "últimas N" uma leitura sequencial eficiente sem ordenação em runtime.</li>
+</ul>
+<h4>Reproduções por artista (para analytics)</h4>
+<pre><code class="language-sql">CREATE TABLE reproducoes_por_artista (
+    artista_id     INT,
+    reproduzido_em TIMESTAMP,
+    track_id       TEXT,
+    nome_musica    TEXT,
+    usuario_id     INT,
+    PRIMARY KEY (artista_id, reproduzido_em)
+) WITH CLUSTERING ORDER BY (reproduzido_em DESC);
+</code></pre>
+<p><strong>Modelagem query-first:</strong> essa tabela atende a consulta <em>"reproduções de um artista em um período"</em>, usada pelo painel de analytics para mostrar tendências:</p>
+<pre><code class="language-sql">SELECT * FROM reproducoes_por_artista
+WHERE artista_id = 42
+AND reproduzido_em &gt;= '2026-09-01'
+AND reproduzido_em &lt;= '2026-09-30';
+</code></pre>
+<ul>
+<li><strong>Partition key:</strong> <code>artista_id</code> — agrupa todas as reproduções de um artista no mesmo nó.</li>
+<li><strong>Clustering column:</strong> <code>reproduzido_em DESC</code> — permite range queries eficientes por período.</li>
+</ul>
+<blockquote>
+<p><strong>Nota sobre desnormalização:</strong> no modelo Wide-Column, a mesma reprodução pode existir em mais de uma tabela (histórico do usuário e reproduções por artista). Isso é intencional e esperado: a modelagem é orientada às consultas, não às entidades — diferentemente do modelo relacional, onde normalizaríamos para evitar redundância. O custo de armazenamento extra é pequeno frente ao ganho de performance na leitura.</p>
+</blockquote>
+<hr />
+<h3>2.3 Diagrama da Arquitetura de Dados</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│                        CEUB Music                               │
+│                    Camada de Aplicação                           │
+└──────────┬──────────────────────────────────┬───────────────────┘
+           │                                  │
+           ▼                                  ▼
+┌─────────────────────┐          ┌──────────────────────────┐
+│    Redis (Chave-     │          │   Cassandra (Wide-       │
+│      Valor)          │          │     Column)              │
+│                      │          │                          │
+│ • Sessão ativa       │          │ • historico_por_usuario   │
+│   (Hash + TTL)       │          │   (PK: usuario_id,       │
+│ • Fila de reprodução │          │    CK: reproduzido_em)   │
+│   (List)             │          │                          │
+│ • Playlists          │          │ • reproducoes_por_artista │
+│   (Hash)             │          │   (PK: artista_id,        │
+│ • Rankings           │          │    CK: reproduzido_em)   │
+│   (Sorted Set)       │          │                          │
+│ • Contadores         │          └──────────────────────────┘
+│   (String/INCR)      │
+└─────────────────────┘
+
+         Cada reprodução gera:
+         1. Atualiza sessão (Redis)
+         2. ZINCRBY no ranking (Redis)
+         3. INCR no contador (Redis)
+         4. INSERT no histórico (Cassandra)
+         5. INSERT em reproduções por artista (Cassandra)
+</code></pre>
+<hr />
+<h2>3. Justificativa Tecnológica</h2>
+<h3>3.1 Limites do Modelo Relacional (Unidade 1)</h3>
+<p>Um banco relacional tradicional atenderia o CEUB Music em cenários de baixo tráfego, mas apresentaria três gargalos significativos conforme o sistema escala:</p>
+<ol>
+<li>
+<p><strong>Custo de joins sob carga concorrente</strong> — montar a tela "Em Alta" em um banco relacional exigiria um <code>JOIN</code> entre tabelas de reproduções, músicas e artistas, seguido de <code>GROUP BY</code> e <code>ORDER BY COUNT(*)</code>. Sob pico de 200 escritas/segundo, essa consulta analítica concorreria com as inserções de reprodução no mesmo servidor, degradando a latência de ambas as operações.</p>
+</li>
+<li>
+<p><strong>Contadores e rankings em tabelas transacionais</strong> — incrementar um contador de reproduções em uma tabela relacional com <code>UPDATE plays SET count = count + 1 WHERE track_id = ?</code> causa contenção de locks por linha quando centenas de usuários ouvem a mesma música simultaneamente. O <code>INCR</code> do Redis, por ser atômico e single-threaded, elimina completamente esse problema.</p>
+</li>
+<li>
+<p><strong>Escalabilidade vertical como único caminho</strong> — bancos relacionais escalam primordialmente de forma vertical (mais CPU, mais RAM no mesmo servidor). O volume projetado de ~14,6 milhões de registros/ano de histórico, com escritas concentradas em janelas de pico, favorece a escalabilidade horizontal nativa de bancos distribuídos como o Cassandra, onde adicionar nós ao cluster aumenta linearmente a capacidade de escrita.</p>
+</li>
+</ol>
+<h3>3.2 Teorema CAP (Unidade 1)</h3>
+<p>O sistema CEUB Music faz <strong>escolhas de consistência diferentes conforme o tipo de dado</strong>, alinhando-se ao Teorema CAP de forma intencional:</p>
+<table>
+<thead>
+<tr>
+<th>Componente</th>
+<th>Classificação CAP</th>
+<th>Justificativa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sessão de reprodução (Redis)</td>
+<td><strong>AP</strong> (Disponibilidade)</td>
+<td>Se o usuário aperta play e o sistema está indisponível, a experiência é quebrada. É preferível servir um estado de sessão momentaneamente desatualizado (ex.: posição da música atrasada em 1 segundo) do que retornar um erro.</td>
+</tr>
+<tr>
+<td>Rankings em tempo real (Redis)</td>
+<td><strong>AP</strong> (Disponibilidade)</td>
+<td>O ranking "Em Alta" pode estar 30 segundos desatualizado sem que o usuário perceba — não há impacto funcional. A disponibilidade do ranking é mais importante que sua precisão absoluta.</td>
+</tr>
+<tr>
+<td>Histórico de reproduções (Cassandra)</td>
+<td><strong>AP</strong> (Disponibilidade)</td>
+<td>O Cassandra é projetado como sistema AP por padrão: em caso de partição de rede, os nós continuam aceitando escritas e se reconciliam depois. Para o histórico, isso é adequado — uma reprodução registrada com atraso de segundos entre réplicas não causa inconsistência funcional.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Por que não CP (Consistência forte)?</strong> Nenhum dos dados do CEUB Music exige consistência forte imediata — não há transações financeiras, não há inventário com risco de overselling. O pior cenário de inconsistência eventual é um ranking momentaneamente desatualizado ou uma reprodução que aparece no histórico com alguns segundos de atraso — ambos imperceptíveis para o usuário.</p>
+<h3>3.3 ACID vs. BASE (Unidade 1)</h3>
+<p>O CEUB Music adota o modelo <strong>BASE (Basically Available, Soft State, Eventually Consistent)</strong> para todos os seus componentes:</p>
+<ul>
+<li>
+<p><strong>Basically Available</strong> — o sistema continua operacional mesmo que partes estejam degradadas. Se um nó do Redis cai, o Sentinel promove uma réplica automaticamente; se um nó do Cassandra fica indisponível, os demais nós do cluster assumem as partições afetadas.</p>
+</li>
+<li>
+<p><strong>Soft State</strong> — o estado do sistema muda sem intervenção explícita do usuário:</p>
+</li>
+<li>A sessão de reprodução no Redis expira automaticamente após 2 horas de inatividade (TTL).</li>
+<li>Rankings diários expiram ao final do dia, dando lugar ao ranking do dia seguinte.</li>
+<li>
+<p>Contadores em réplicas diferentes podem ter valores momentaneamente distintos.</p>
+</li>
+<li>
+<p><strong>Eventually Consistent</strong> — após uma escrita no Cassandra, nem todas as réplicas refletem o novo dado imediatamente, mas convergem em segundos. Para o histórico de reproduções, isso é aceitável: o usuário não percebe se a última música ouvida aparece no histórico com 2 segundos de atraso.</p>
+</li>
+</ul>
+<p><strong>Por que não ACID?</strong> Garantias ACID (transações distribuídas, isolamento completo) adicionariam latência e complexidade incompatíveis com o requisito de baixa latência do player. Um <code>BEGIN TRANSACTION</code> para cada reprodução — abrangendo sessão, ranking e histórico — seria desnecessariamente custoso para dados que não requerem isolamento transacional.</p>
+<h3>3.4 Sharding e Replicação (Unidade 1)</h3>
+<h4>Estratégia de Sharding</h4>
+<table>
+<thead>
+<tr>
+<th>Banco</th>
+<th>Estratégia</th>
+<th>Chave de Partição</th>
+<th>Justificativa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Cassandra</strong></td>
+<td>Hash-based (Murmur3 partitioner)</td>
+<td><code>usuario_id</code> (histórico) / <code>artista_id</code> (analytics)</td>
+<td>O particionador hash do Cassandra distribui automaticamente os dados entre os nós do cluster usando hash da partition key. Isso garante distribuição uniforme — nenhum nó acumula desproporcionalmente os dados de usuários populares.</td>
+</tr>
+<tr>
+<td><strong>Redis</strong></td>
+<td>Consistent Hashing (Redis Cluster)</td>
+<td>Prefixo da chave (ex.: <code>sessao:usuario:5021</code>)</td>
+<td>O Redis Cluster usa 16.384 hash slots distribuídos entre os nós. As chaves são atribuídas a slots via CRC16, e o Consistent Hashing garante que adicionar ou remover nós afeta no máximo 1/N das chaves — minimizando a redistribuição.</td>
+</tr>
+</tbody>
+</table>
+<h4>Estratégia de Replicação</h4>
+<table>
+<thead>
+<tr>
+<th>Banco</th>
+<th>Estratégia</th>
+<th>Fator</th>
+<th>Justificativa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Cassandra</strong></td>
+<td><strong>Master-Master</strong> (peer-to-peer, sem nó primário)</td>
+<td>Fator de replicação = 3</td>
+<td>O Cassandra replica cada partição em 3 nós — qualquer um aceita escritas, sem ponto único de falha. Isso é essencial para o CEUB Music: durante o pico de almoço, a escrita de reproduções não pode depender de um único nó master.</td>
+</tr>
+<tr>
+<td><strong>Redis</strong></td>
+<td><strong>Master-Slave</strong> (Redis Sentinel)</td>
+<td>1 master + 2 réplicas por shard</td>
+<td>Para sessões e rankings, a escrita é direcionada ao master e replicada assincronamente para as réplicas. As réplicas atendem leituras (ex.: consultas ao ranking), distribuindo a carga. Em caso de falha do master, o Sentinel promove uma réplica automaticamente.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Comparação com o cenário relacional:</strong> em um banco relacional, implementar sharding requer soluções externas (middleware, lógica na aplicação) e replicação Master-Master causa conflitos de escrita difíceis de resolver. No Cassandra, sharding e replicação são nativos e transparentes — a aplicação escreve normalmente e o cluster distribui e replica automaticamente.</p>
+<h3>3.5 Chave-Valor — Redis (Unidade 2)</h3>
+<p>O grupo utiliza <strong>cinco estruturas de dados do Redis</strong>, cada uma escolhida pelo ajuste natural ao padrão de acesso do dado:</p>
+<table>
+<thead>
+<tr>
+<th>Estrutura</th>
+<th>Uso no CEUB Music</th>
+<th>Por que esta estrutura</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Hash</strong></td>
+<td>Sessão de reprodução, playlists</td>
+<td>Agrupa campos relacionados sob uma chave; permite ler/atualizar campos individuais sem serializar o objeto inteiro.</td>
+</tr>
+<tr>
+<td><strong>List</strong></td>
+<td>Fila de reprodução</td>
+<td>Suporta FIFO (LPUSH/RPOP) e acesso posicional — modela naturalmente uma fila ordenada de músicas.</td>
+</tr>
+<tr>
+<td><strong>Sorted Set</strong></td>
+<td>Rankings (diário, semanal, mensal, por gênero)</td>
+<td><code>ZINCRBY</code> incrementa o score atomicamente; <code>ZREVRANGE</code> retorna o Top N sem varredura — operações ideais para ranking.</td>
+</tr>
+<tr>
+<td><strong>String</strong></td>
+<td>Contadores de reprodução (por faixa, por artista)</td>
+<td><code>INCR</code> atômico em O(1) — sem locks, sem contenção, mesmo sob centenas de incrementos simultâneos.</td>
+</tr>
+<tr>
+<td><strong>TTL</strong></td>
+<td>Expiração de sessões (2h) e rankings diários (24h)</td>
+<td>Implementa soft state automaticamente, sem necessidade de jobs de limpeza — alinhado ao modelo BASE.</td>
+</tr>
+</tbody>
+</table>
+<h4>Consistent Hashing (Dynamo / Redis Cluster)</h4>
+<p>O <strong>Consistent Hashing</strong>, estudado no contexto do Dynamo (Amazon), é utilizado pelo Redis Cluster para distribuir chaves entre nós. O princípio é o mesmo: chaves e nós são mapeados em um anel hash; cada chave é atribuída ao primeiro nó encontrado no sentido horário do anel.</p>
+<p>No CEUB Music, isso significa que ao escalar de 3 para 5 nós Redis durante o pico de almoço, apenas ~2/5 das chaves precisam ser redistribuídas — em vez de reorganizar todas, como aconteceria com hashing simples (<code>key % N</code>). Isso permite <strong>elasticidade horizontal com mínimo de disrupção</strong>.</p>
+<h3>3.6 Wide-Column — Cassandra (Unidade 3)</h3>
+<h4>Modelagem Query-First</h4>
+<p>Diferentemente do modelo relacional, onde primeiro se definem as entidades e depois se consultam com joins, no Cassandra a modelagem parte das <strong>consultas que a aplicação precisa fazer</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Consulta da aplicação</th>
+<th>Tabela modelada</th>
+<th>Partition Key</th>
+<th>Clustering Column</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>"Últimas 20 músicas ouvidas pelo usuário X"</td>
+<td><code>historico_por_usuario</code></td>
+<td><code>usuario_id</code></td>
+<td><code>reproduzido_em DESC</code></td>
+</tr>
+<tr>
+<td>"Reproduções do artista Y no mês de setembro"</td>
+<td><code>reproducoes_por_artista</code></td>
+<td><code>artista_id</code></td>
+<td><code>reproduzido_em DESC</code></td>
+</tr>
+</tbody>
+</table>
+<p>Cada tabela é desenhada para responder <strong>uma consulta específica</strong> de forma eficiente — leitura sequencial dentro de uma única partição, sem scans cross-partition.</p>
+<h4>Column Families</h4>
+<p>No modelo Wide-Column do Cassandra:</p>
+<ul>
+<li><strong>Column Family</strong> = tabela CQL. Cada column family agrupa colunas logicamente relacionadas.</li>
+<li><strong><code>historico_por_usuario</code></strong> é uma column family cujas colunas (track_id, nome_musica, artista, duracao_seg, dispositivo) representam os atributos de cada reprodução.</li>
+<li><strong><code>reproducoes_por_artista</code></strong> é outra column family com colunas diferentes (track_id, nome_musica, usuario_id), otimizada para a perspectiva do artista.</li>
+</ul>
+<h4>Partition Key e Clustering Columns</h4>
+<ul>
+<li>
+<p><strong>Partition key</strong> (<code>usuario_id</code> ou <code>artista_id</code>) — determina <strong>em qual nó</strong> do cluster os dados residem. O Cassandra aplica o Murmur3 hash sobre a partition key para atribuir os dados a um nó. Escolher a partition key correta é a decisão mais impactante: ela deve garantir que os dados acessados juntos estejam na mesma partição.</p>
+</li>
+<li>
+<p><strong>Clustering column</strong> (<code>reproduzido_em DESC</code>) — determina <strong>a ordem física</strong> dos dados dentro da partição no disco (SSTable). Ao definir <code>CLUSTERING ORDER BY (reproduzido_em DESC)</code>, o Cassandra armazena as reproduções mais recentes primeiro — a consulta "últimas 20" lê os primeiros 20 registros sequencialmente, sem ordenação em runtime.</p>
+</li>
+</ul>
+<hr />
+<h2>4. Resumo: Por que essa combinação tecnológica</h2>
+<table>
+<thead>
+<tr>
+<th>Necessidade do CEUB Music</th>
+<th>Tecnologia</th>
+<th>Motivo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sessão do player com latência mínima</td>
+<td>Redis (Hash + TTL)</td>
+<td>Acesso por chave em memória, O(1), soft state automático</td>
+</tr>
+<tr>
+<td>Rankings atualizados a cada play</td>
+<td>Redis (Sorted Set)</td>
+<td>ZINCRBY atômico, ZREVRANGE para Top N em tempo real</td>
+</tr>
+<tr>
+<td>Contadores de reprodução sem locks</td>
+<td>Redis (String/INCR)</td>
+<td>Operação atômica O(1), sem contenção sob concorrência</td>
+</tr>
+<tr>
+<td>Histórico durável de milhões de reproduções</td>
+<td>Cassandra</td>
+<td>Escrita distribuída, compactação eficiente, leitura sequencial por partição</td>
+</tr>
+<tr>
+<td>Analytics por artista e período</td>
+<td>Cassandra</td>
+<td>Modelagem query-first com range queries sobre clustering column</td>
+</tr>
+<tr>
+<td>Escalabilidade horizontal no pico</td>
+<td>Ambos</td>
+<td>Redis Cluster (Consistent Hashing) + Cassandra (hash partitioner) escalam adicionando nós</td>
+</tr>
+<tr>
+<td>Alta disponibilidade sem ponto único de falha</td>
+<td>Ambos</td>
+<td>Redis Sentinel (failover automático) + Cassandra peer-to-peer (sem master)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>5. Referências</h2>
+<ul>
+<li>SADALAGE, P. J.; FOWLER, M. <em>NoSQL Distilled: A Brief Guide to the Emerging World of Polyglot Persistence</em>. Addison-Wesley, 2013.</li>
+<li>DeCANDIA, G. et al. <em>Dynamo: Amazon's Highly Available Key-Value Store</em>. SOSP, 2007.</li>
+<li>CHANG, F. et al. <em>Bigtable: A Distributed Storage System for Structured Data</em>. OSDI, 2006.</li>
+<li>LAKSHMAN, A.; MALIK, P. <em>Cassandra: A Decentralized Structured Storage System</em>. LADIS, 2010.</li>
+<li>Redis Documentation. Disponível em: https://redis.io/docs/</li>
+<li>Apache Cassandra Documentation. Disponível em: https://cassandra.apache.org/doc/latest/</li>
+</ul>
+</body>
+</html>
