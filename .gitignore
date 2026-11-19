@@ -15,3 +15,8 @@ yarn-error.log*
 # Sistema operacional
 .DS_Store
 Thumbs.db
+
+.env*
+*.pem
+*.key
+dump.rdb
