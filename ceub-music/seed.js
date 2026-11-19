@@ -1,5 +1,7 @@
 const Redis = require('ioredis');
-const redis = new Redis({ host: '127.0.0.1', port: 6379 });
+const redisOptions = require('./lib/redis-options');
+const { authors } = require('./public/js/project');
+const redis = new Redis(redisOptions());
 
 // ============================================================
 // SEED — Popular Redis com dados de demonstração
@@ -29,11 +31,7 @@ const TRACKS = [
   { id: 'track:020', nome: 'Thriller', artista: 'Michael Jackson', genero: 'pop', duracao: 357, capa: '🕺' },
 ];
 
-const USERS = [
-  { id: 1, nome: 'Ana Silva' },
-  { id: 2, nome: 'Carlos Souza' },
-  { id: 3, nome: 'Maria Oliveira' },
-];
+const USERS = authors.map(({ id, name }) => ({ id, nome: name }));
 
 async function seed() {
   console.log('🌱 Iniciando seed do CEUB Music...\n');
@@ -90,8 +88,8 @@ async function seed() {
 
   // 3. Playlists dos usuários (Hash + Set)
   console.log('📋 Criando playlists (Redis HSET + SADD)...');
-  
-  // Ana — Rock clássico
+
+  // Arthur — Rock clássico
   pipeline.hset('playlist:usuario:1:rock_classico', { nome: 'Rock Clássico', criada_em: '2026-08-10T10:00:00Z', total_faixas: '3' });
   pipeline.hset('playlist:faixas:usuario:1:rock_classico', {
     '0': JSON.stringify({ trackId: 'track:001', nome: 'Bohemian Rhapsody', artista: 'Queen', duracao: 354 }),
@@ -100,7 +98,7 @@ async function seed() {
   });
   pipeline.sadd('playlists:usuario:1', 'rock_classico');
 
-  // Ana — Para estudar
+  // Arthur — Para estudar
   pipeline.hset('playlist:usuario:1:para_estudar', { nome: 'Para Estudar', criada_em: '2026-08-15T14:00:00Z', total_faixas: '3' });
   pipeline.hset('playlist:faixas:usuario:1:para_estudar', {
     '0': JSON.stringify({ trackId: 'track:010', nome: 'Clair de Lune', artista: 'Debussy', duracao: 302 }),
@@ -109,7 +107,7 @@ async function seed() {
   });
   pipeline.sadd('playlists:usuario:1', 'para_estudar');
 
-  // Carlos — Hits do momento
+  // Guilherme — Hits do momento
   pipeline.hset('playlist:usuario:2:hits_do_momento', { nome: 'Hits do Momento', criada_em: '2026-09-01T09:00:00Z', total_faixas: '4' });
   pipeline.hset('playlist:faixas:usuario:2:hits_do_momento', {
     '0': JSON.stringify({ trackId: 'track:004', nome: 'Blinding Lights', artista: 'The Weeknd', duracao: 200 }),
@@ -119,7 +117,7 @@ async function seed() {
   });
   pipeline.sadd('playlists:usuario:2', 'hits_do_momento');
 
-  // Maria — MPB
+  // Luan — MPB
   pipeline.hset('playlist:usuario:3:mpb_favoritas', { nome: 'MPB Favoritas', criada_em: '2026-08-20T16:00:00Z', total_faixas: '3' });
   pipeline.hset('playlist:faixas:usuario:3:mpb_favoritas', {
     '0': JSON.stringify({ trackId: 'track:014', nome: 'Garota de Ipanema', artista: 'Tom Jobim', duracao: 312 }),
@@ -130,15 +128,15 @@ async function seed() {
 
   // 4. Histórico dos usuários (List — RPUSH)
   console.log('🕐 Gerando histórico de reproduções (Redis LPUSH / List)...');
-  
+
   const historyTracks = [
-    [0, 3, 5, 19, 1, 11, 4, 9],   // Ana
-    [4, 6, 7, 3, 19, 12, 8, 5],   // Carlos
-    [13, 14, 17, 10, 15, 16, 0, 5] // Maria
+    [0, 3, 5, 19, 1, 11, 4, 9],   // Arthur
+    [4, 6, 7, 3, 19, 12, 8, 5],   // Guilherme
+    [13, 14, 17, 10, 15, 16, 0, 5] // Luan
   ];
 
   for (let u = 0; u < USERS.length; u++) {
-    for (let h = 0; h < historyTracks[u].length; h++) {
+    for (let h = historyTracks[u].length - 1; h >= 0; h--) {
       const t = TRACKS[historyTracks[u][h]];
       const playedAt = new Date(Date.now() - (h * 3600000 + Math.random() * 1800000)).toISOString();
       pipeline.lpush(`historico:usuario:${USERS[u].id}`, JSON.stringify({
@@ -151,9 +149,9 @@ async function seed() {
   console.log('🎧 Criando filas de reprodução (Redis RPUSH / List)...');
 
   const queueTracks = [
-    [11, 12, 18],  // Ana
-    [7, 8, 9],     // Carlos
-    [16, 15, 14],  // Maria
+    [11, 12, 18],  // Arthur
+    [7, 8, 9],     // Guilherme
+    [16, 15, 14],  // Luan
   ];
 
   for (let u = 0; u < USERS.length; u++) {

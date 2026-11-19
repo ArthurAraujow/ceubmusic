@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
+const redisOptions = require('./lib/redis-options');
 
 // Routes
 const playerRoutes = require('./routes/player');
@@ -42,5 +43,6 @@ app.get('*', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`\n🎵 CEUB Music rodando em http://localhost:${PORT}`);
-  console.log(`📦 Redis conectando em localhost:6379\n`);
+  const target = redisOptions();
+  console.log(`📦 Redis conectando em ${target.host}:${target.port} (db ${target.db})\n`);
 });
