@@ -8,6 +8,7 @@ test("profiles use the requested authors and retain the original storage IDs", (
     { id: "1", name: "Arthur Araujo" },
     { id: "2", name: "Guilherme Leony" },
     { id: "3", name: "Luan Jywago" },
+    { id: "4", name: "Daniel Cezar" },
   ]);
 });
 test("dimensioning estimates events, payload and peak-window rate", () => {
