@@ -91,6 +91,14 @@
                 </svg>
                 Laboratório NoSQL
               </button>
+              <button class="nav-item" data-page="analytics">
+                <svg viewBox="0 0 24 24">
+                  <rect x="3" y="12" width="4" height="9" />
+                  <rect x="10" y="7" width="4" height="14" />
+                  <rect x="17" y="3" width="4" height="18" />
+                </svg>
+                Analytics (Cassandra)
+              </button>
             </div>
           </div>
 
@@ -105,8 +113,10 @@
                 <span class="status-dot"></span>
                 <span id="statusText">Redis Offline</span>
               </div>
-              <span style="font-size: 10px; color: var(--text-muted)"
-                >Porta 6379</span
+              <span
+                id="statusPorts"
+                style="font-size: 10px; color: var(--text-muted)"
+                >6379 · 9042</span
               >
             </div>
           </div>
@@ -209,7 +219,7 @@
               </div>
               <div>
                 <div class="metric-val" id="stat-history">—</div>
-                <div class="metric-lbl">Execuções Recentes</div>
+                <div class="metric-lbl" id="stat-history-lbl">Reproduções no Histórico</div>
               </div>
             </div>
           </div>
@@ -416,11 +426,12 @@
 
           <div class="redis-console-card">
             <div class="redis-console-header">
-              <span>Telemetria Redis (List)</span>
-              <span class="type-badge type-list">LIST</span>
+              <span id="history-console-title">Telemetria do histórico</span>
+              <span class="type-badge type-cql" id="history-console-badge">CQL</span>
             </div>
+            <div class="history-source-note" id="history-source-note"></div>
             <div class="redis-cmd-block" id="history-redis-cmd">
-              LRANGE historico:usuario:{id} 0 19
+              SELECT * FROM historico_por_usuario WHERE usuario_id = ? LIMIT 20;
             </div>
             <div class="redis-output-block" id="history-redis-result">
               Aguardando dados...
@@ -941,6 +952,79 @@ WHERE usuario_id = ? AND dia = ? LIMIT 20;</pre>
               </p>
             </section>
           </section>
+        </div>
+
+        <!-- ANALYTICS PAGE (CASSANDRA) -->
+        <div id="page-analytics" class="page">
+          <div class="section-headline" style="margin-bottom: 8px">
+            <h3>Analytics por artista</h3>
+          </div>
+          <p class="analytics-intro">
+            Reproduções de um artista por período, lidas da tabela Wide-Column
+            <code>reproducoes_por_artista</code> no Cassandra. Partition key
+            <code>artista_id</code>, clustering column
+            <code>reproduzido_em DESC</code>.
+          </p>
+
+          <div class="analytics-controls">
+            <select id="analytics-artist" aria-label="Artista"></select>
+            <div class="tab-group analytics-days">
+              <button class="tab-pill" data-days="7">7 dias</button>
+              <button class="tab-pill active" data-days="30">30 dias</button>
+            </div>
+          </div>
+
+          <div class="metrics-grid analytics-metrics">
+            <div class="metric-card">
+              <div>
+                <div class="metric-val" id="an-total">—</div>
+                <div class="metric-lbl">Reproduções no período</div>
+              </div>
+            </div>
+            <div class="metric-card">
+              <div>
+                <div class="metric-val" id="an-listeners">—</div>
+                <div class="metric-lbl">Ouvintes distintos</div>
+              </div>
+            </div>
+            <div class="metric-card">
+              <div>
+                <div class="metric-val" id="an-best">—</div>
+                <div class="metric-lbl">Dia de pico</div>
+              </div>
+            </div>
+            <div class="metric-card">
+              <div>
+                <div class="metric-val" id="an-ms">—</div>
+                <div class="metric-lbl">Tempo da consulta</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="analytics-chart-card">
+            <div class="analytics-chart-title">Reproduções por dia</div>
+            <div class="analytics-chart" id="an-chart"></div>
+          </div>
+
+          <div class="analytics-columns">
+            <div>
+              <div class="section-headline"><h3>Faixas do artista</h3></div>
+              <div class="track-list" id="an-tracks"></div>
+            </div>
+            <div>
+              <div class="section-headline"><h3>Últimas reproduções</h3></div>
+              <div class="track-list" id="an-recent"></div>
+            </div>
+          </div>
+
+          <div class="redis-console-card">
+            <div class="redis-console-header">
+              <span>Consulta Cassandra (Wide-Column)</span>
+              <span class="type-badge type-cql">CQL</span>
+            </div>
+            <div class="redis-cmd-block" id="an-cql"></div>
+            <div class="redis-output-block" id="an-result">Aguardando dados...</div>
+          </div>
         </div>
       </main>
 

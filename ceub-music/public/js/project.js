@@ -13,6 +13,7 @@
       Object.freeze({ id: "1", name: "Arthur Araujo" }),
       Object.freeze({ id: "2", name: "Guilherme Leony" }),
       Object.freeze({ id: "3", name: "Luan Jywago" }),
+      Object.freeze({ id: "4", name: "Daniel Cezar" }),
     ]),
   });
 });

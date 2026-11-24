@@ -1516,3 +1516,91 @@ svg {
     font-size: 10px;
   }
 }
+
+/* ============================================================
+   CASSANDRA — histórico e analytics por artista
+   ============================================================ */
+.type-cql {
+  color: #f2c9a8;
+  border-color: #5b4334;
+  background: #2f221a;
+}
+.history-source-note {
+  background: #17141d;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 18px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.history-source-note:empty {
+  display: none;
+}
+.analytics-intro {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+.analytics-intro code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.analytics-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.analytics-controls select {
+  padding: 9px 12px;
+  min-width: 220px;
+}
+.analytics-controls .tab-group {
+  margin: 0;
+}
+.analytics-metrics {
+  margin-bottom: 20px;
+}
+.analytics-chart-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 18px;
+  margin-bottom: 24px;
+}
+.analytics-chart-title {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 14px;
+}
+.analytics-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 140px;
+}
+.analytics-bar {
+  flex: 1;
+  min-width: 4px;
+  min-height: 2px;
+  border-radius: 3px 3px 0 0;
+  background: var(--ceub-magenta);
+  opacity: 0.85;
+}
+.analytics-bar:hover {
+  opacity: 1;
+}
+.analytics-bar.zero {
+  background: var(--border);
+}
+.analytics-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+@media (max-width: 900px) {
+  .analytics-columns {
+    grid-template-columns: 1fr;
+  }
+}

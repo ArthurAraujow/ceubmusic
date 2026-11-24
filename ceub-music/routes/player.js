@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Redis = require("ioredis");
 const redisOptions = require("../lib/redis-options");
+const cassandra = require("../lib/cassandra");
 const redis = new Redis({
   ...redisOptions(),
   lazyConnect: true,
@@ -97,12 +98,26 @@ router.post("/play", async (req, res) => {
       playedAt: now,
     });
     await redis.lpush(`historico:usuario:${userId}`, historyEntry);
-    await redis.ltrim(`historico:usuario:${userId}`, 0, 99); // Mantém últimas 100
+    await redis.ltrim(`historico:usuario:${userId}`, 0, 99); // Mantém últimas 100 (cache quente)
+
+    // 7. Histórico durável no Cassandra (Wide-Column) — grava nas duas tabelas query-first.
+    // Modelo AP/BASE: se o Cassandra estiver fora, o play NÃO falha; o Redis já registrou.
+    let cassandraStatus = "indisponivel";
+    if (cassandra.isReady()) {
+      try {
+        await cassandra.recordPlay({ userId, trackId, trackName, artist, duration, playedAt: now });
+        cassandraStatus = "gravado";
+      } catch (err) {
+        cassandraStatus = "falhou";
+        console.warn("⚠️  Cassandra: play não gravado:", err.message);
+      }
+    }
 
     res.json({
       success: true,
       message: "Reprodução iniciada",
       session: sessionKey,
+      cassandra: cassandraStatus,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

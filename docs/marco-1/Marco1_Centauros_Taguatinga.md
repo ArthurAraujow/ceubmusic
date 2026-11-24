@@ -1,7 +1,7 @@
 # Marco 1 — Projeto Incremental
 ## Bancos de Dados NoSQL: Persistência e Distribuição de Big Data
 
-**Grupo:** Centauros (3 alunos)  
+**Grupo:** Centauros (4 alunos)  
 **Campus:** Taguatinga  
 **Data de Entrega:** 29/09/2026
 

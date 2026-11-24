@@ -1,6 +1,7 @@
 const Redis = require('ioredis');
 const redisOptions = require('./lib/redis-options');
 const { authors } = require('./public/js/project');
+const cassandra = require('./lib/cassandra');
 const redis = new Redis(redisOptions());
 
 // ============================================================
@@ -126,15 +127,26 @@ async function seed() {
   });
   pipeline.sadd('playlists:usuario:3', 'mpb_favoritas');
 
+  // Daniel — Eletrônica
+  pipeline.hset('playlist:usuario:4:eletronica', { nome: 'Eletrônica', criada_em: '2026-09-05T18:00:00Z', total_faixas: '3' });
+  pipeline.hset('playlist:faixas:usuario:4:eletronica', {
+    '0': JSON.stringify({ trackId: 'track:012', nome: 'One More Time', artista: 'Daft Punk', duracao: 320 }),
+    '1': JSON.stringify({ trackId: 'track:013', nome: 'Strobe', artista: 'Deadmau5', duracao: 637 }),
+    '2': JSON.stringify({ trackId: 'track:019', nome: 'Superstition', artista: 'Stevie Wonder', duracao: 245 }),
+  });
+  pipeline.sadd('playlists:usuario:4', 'eletronica');
+
   // 4. Histórico dos usuários (List — RPUSH)
   console.log('🕐 Gerando histórico de reproduções (Redis LPUSH / List)...');
 
   const historyTracks = [
     [0, 3, 5, 19, 1, 11, 4, 9],   // Arthur
     [4, 6, 7, 3, 19, 12, 8, 5],   // Guilherme
-    [13, 14, 17, 10, 15, 16, 0, 5] // Luan
+    [13, 14, 17, 10, 15, 16, 0, 5], // Luan
+    [11, 12, 18, 6, 2, 7, 15, 19]   // Daniel
   ];
 
+  const recentPlays = []; // reaproveitado no Cassandra
   for (let u = 0; u < USERS.length; u++) {
     for (let h = historyTracks[u].length - 1; h >= 0; h--) {
       const t = TRACKS[historyTracks[u][h]];
@@ -142,6 +154,7 @@ async function seed() {
       pipeline.lpush(`historico:usuario:${USERS[u].id}`, JSON.stringify({
         trackId: t.id, trackName: t.nome, artist: t.artista, duration: t.duracao, playedAt
       }));
+      recentPlays.push({ userId: USERS[u].id, trackId: t.id, trackName: t.nome, artist: t.artista, duration: t.duracao, playedAt });
     }
   }
 
@@ -152,6 +165,7 @@ async function seed() {
     [11, 12, 18],  // Arthur
     [7, 8, 9],     // Guilherme
     [16, 15, 14],  // Luan
+    [0, 3, 13],    // Daniel
   ];
 
   for (let u = 0; u < USERS.length; u++) {
@@ -229,9 +243,61 @@ async function seed() {
   const playlist = await redis.hgetall('playlist:usuario:1:rock_classico');
   console.log('   ', playlist);
 
+  await seedCassandra(recentPlays, playCounts);
+
   console.log('\n🎉 Pronto! Execute "npm run dev" para iniciar o servidor.\n');
 
   redis.disconnect();
+}
+
+// ============================================================
+// SEED CASSANDRA — histórico durável (Wide-Column)
+// Grava as reproduções recentes (as mesmas do Redis) + ~30 dias de histórico
+// simulado, nas duas tabelas query-first.
+// ============================================================
+async function seedCassandra(recentPlays, playCounts) {
+  console.log('\n🗄️  Populando Cassandra (Wide-Column)...');
+  const ok = await cassandra.connect({ retry: false, quiet: true });
+  if (!ok) {
+    console.warn('⚠️  Cassandra indisponível — pulei esta etapa. Suba o container (docker start ceub-cassandra), espere ~1 min e rode "npm run seed" de novo.');
+    return;
+  }
+  try {
+    await cassandra.truncateAll();
+
+    // Histórico simulado: 1 a 30 dias atrás, volume proporcional à popularidade da faixa.
+    // Gerador pseudo-aleatório com semente fixa → mesmos números em toda execução.
+    let s = 42;
+    const rand = () => ((s = (s * 1103515245 + 12345) % 2147483648) / 2147483648);
+    const DAY = 86400000;
+    const older = [];
+    TRACKS.forEach((t, i) => {
+      const n = Math.round(playCounts[i] / 15);
+      for (let k = 0; k < n; k++) {
+        const user = USERS[Math.floor(rand() * USERS.length)];
+        const playedAt = new Date(Date.now() - DAY - rand() * 29 * DAY).toISOString();
+        older.push({ userId: user.id, trackId: t.id, trackName: t.nome, artist: t.artista, duration: t.duracao, playedAt });
+      }
+    });
+
+    const all = [...recentPlays, ...older];
+    await cassandra.bulkRecordPlays(all);
+
+    console.log(`   INSERT historico_por_usuario   → ${all.length} linhas`);
+    console.log(`   INSERT reproducoes_por_artista → ${all.length} linhas (mesmo play, outra consulta)`);
+
+    console.log('\n7️⃣  CASSANDRA — SELECT * FROM historico_por_usuario WHERE usuario_id = 1 LIMIT 3');
+    (await cassandra.getUserHistory('1', 3)).forEach((e, i) =>
+      console.log(`    [${i}] ${e.playedAt}  ${e.trackName} — ${e.artist}`));
+
+    const total = await cassandra.countUserHistory('1');
+    console.log(`    Total de reproduções do usuário 1 no Cassandra: ${total} (o Redis guarda só as últimas 100)`);
+
+    const plays = await cassandra.getArtistPlays('queen', new Date(Date.now() - 30 * DAY), new Date());
+    console.log(`\n8️⃣  CASSANDRA — reproducoes_por_artista WHERE artista_id = 'queen' (últimos 30 dias): ${plays.length} plays`);
+  } finally {
+    await cassandra.shutdown();
+  }
 }
 
 function getWeekNumber(d) {

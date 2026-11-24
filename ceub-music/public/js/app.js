@@ -50,6 +50,7 @@ function navigateTo(pageId) {
     history: "Seu caminho até aqui",
     queue: "A seguir no seu universo",
     "redis-demo": "Por dentro do som",
+    analytics: "Quem está ouvindo quem",
   };
   document.getElementById("page-title").textContent = titles[pageId];
   document
@@ -96,6 +97,9 @@ function navigateTo(pageId) {
       break;
     case "redis-demo":
       loadRedisDemo();
+      break;
+    case "analytics":
+      loadAnalytics();
       break;
   }
 }
@@ -217,10 +221,10 @@ async function loadHome() {
 
 let currentPeriod = "daily";
 
-document.querySelectorAll(".tab-pill").forEach((btn) => {
+document.querySelectorAll("#page-rankings .tab-pill").forEach((btn) => {
   btn.addEventListener("click", () => {
     document
-      .querySelectorAll(".tab-pill")
+      .querySelectorAll("#page-rankings .tab-pill")
       .forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
     loadRankings(btn.dataset.period);
@@ -346,29 +350,161 @@ function closePlaylistDetail() {
 }
 
 // ============================================================
-// HISTÓRICO (REDIS LIST)
+// HISTÓRICO (CASSANDRA — durável; REDIS LIST — cache/fallback)
 // ============================================================
 
 async function loadHistory() {
   const data = await api(`/api/history/${currentUserId}?limit=20`);
   const container = document.getElementById("history-list");
+  const fromCassandra = data && data.source === "cassandra";
+
+  document.getElementById("history-console-title").textContent = fromCassandra
+    ? "Cassandra (Wide-Column) — historico_por_usuario"
+    : "Redis (List) — cache das últimas 100";
+  const badge = document.getElementById("history-console-badge");
+  badge.textContent = fromCassandra ? "CQL" : "LIST";
+  badge.className = `type-badge ${fromCassandra ? "type-cql" : "type-list"}`;
+  document.getElementById("history-source-note").textContent = !data
+    ? ""
+    : fromCassandra
+      ? `${data.total.toLocaleString("pt-BR")} reproduções gravadas no Cassandra para este usuário. Partition key usuario_id = ${currentUserId}; clustering reproduzido_em DESC (mais recentes primeiro, sem ORDER BY em tempo de execução).`
+      : "Cassandra indisponível: lendo o cache do Redis (últimas 100). O play continua funcionando — escolha AP.";
 
   if (data && data.entries && data.entries.length > 0) {
     container.innerHTML = data.entries.map((e) => historyRowHTML(e)).join("");
     attachTrackClicks(container);
 
-    document.getElementById("history-redis-cmd").innerHTML =
-      `<strong>LRANGE</strong> historico:usuario:${currentUserId} 0 19`;
+    document.getElementById("history-redis-cmd").textContent = data.query;
     document.getElementById("history-redis-result").textContent = data.entries
-      .map(
-        (e, i) =>
-          `[Índice ${i}] ${e.trackName} — ${e.artist} (Executado ${timeAgo(e.playedAt)})`,
+      .map((e, i) =>
+        fromCassandra
+          ? `usuario_id=${currentUserId} | reproduzido_em=${e.playedAt} | ${e.trackName} — ${e.artist} | ${e.duration}s | ${e.device}`
+          : `[Índice ${i}] ${e.trackName} — ${e.artist} (Executado ${timeAgo(e.playedAt)})`,
       )
       .join("\n");
   } else {
     container.innerHTML = emptyStateHTML("Histórico de reprodução vazio.");
     document.getElementById("history-redis-result").textContent = "(vazio)";
   }
+}
+
+// ============================================================
+// ANALYTICS POR ARTISTA (CASSANDRA — reproducoes_por_artista)
+// ============================================================
+
+let analyticsDays = 30;
+
+document.querySelectorAll("#page-analytics .tab-pill").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document
+      .querySelectorAll("#page-analytics .tab-pill")
+      .forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    analyticsDays = Number(btn.dataset.days);
+    loadAnalytics();
+  });
+});
+
+document
+  .getElementById("analytics-artist")
+  .addEventListener("change", () => loadAnalytics());
+
+async function loadAnalytics() {
+  const select = document.getElementById("analytics-artist");
+  if (!select.options.length) {
+    const artists = await api("/api/analytics/artists");
+    if (!artists || !artists.length) {
+      document.getElementById("an-result").textContent =
+        "Sem artistas. Rode npm run seed.";
+      return;
+    }
+    select.replaceChildren(
+      ...artists.map(({ id, name }) => new Option(name, id)),
+    );
+    select.value = artists.some((a) => a.id === "queen") ? "queen" : artists[0].id;
+  }
+
+  const res = await fetch(
+    `${API}/api/analytics/artist/${encodeURIComponent(select.value)}?days=${analyticsDays}`,
+  ).catch(() => null);
+  const data = res ? await res.json().catch(() => null) : null;
+  if (!res || !res.ok || !data) {
+    const msg =
+      (data && data.error) ||
+      "Não foi possível consultar o Cassandra. Verifique o container ceub-cassandra.";
+    ["an-total", "an-listeners", "an-best", "an-ms"].forEach(
+      (id) => (document.getElementById(id).textContent = "—"),
+    );
+    document.getElementById("an-chart").innerHTML = "";
+    document.getElementById("an-tracks").innerHTML = emptyStateHTML(msg);
+    document.getElementById("an-recent").innerHTML = "";
+    document.getElementById("an-cql").textContent = "";
+    document.getElementById("an-result").textContent = msg;
+    return;
+  }
+
+  document.getElementById("an-total").textContent =
+    data.totalPlays.toLocaleString("pt-BR");
+  document.getElementById("an-listeners").textContent = data.uniqueListeners;
+  const best = data.series.reduce((a, b) => (b.plays > a.plays ? b : a), {
+    plays: 0,
+  });
+  document.getElementById("an-best").textContent = best.day
+    ? `${best.day.slice(8, 10)}/${best.day.slice(5, 7)} (${best.plays})`
+    : "—";
+  document.getElementById("an-ms").textContent = `${data.elapsedMs} ms`;
+
+  const max = Math.max(1, ...data.series.map((s) => s.plays));
+  document.getElementById("an-chart").innerHTML = data.series
+    .map(
+      (s) =>
+        `<div class="analytics-bar${s.plays ? "" : " zero"}" style="height:${(s.plays / max) * 100}%" title="${s.day.slice(8, 10)}/${s.day.slice(5, 7)}: ${s.plays} reproduções"></div>`,
+    )
+    .join("");
+
+  const tracksEl = document.getElementById("an-tracks");
+  tracksEl.innerHTML = data.topTracks.length
+    ? data.topTracks
+        .map((t, i) =>
+          trackRowHTML(
+            {
+              trackId: t.trackId,
+              name: t.name,
+              artist: data.artist,
+              plays: t.plays,
+              duration: t.duration,
+              genre: t.genre,
+            },
+            i + 1,
+          ),
+        )
+        .join("")
+    : emptyStateHTML("Nenhuma reprodução no período.");
+  attachTrackClicks(tracksEl);
+
+  const recentEl = document.getElementById("an-recent");
+  recentEl.innerHTML = data.recent.length
+    ? data.recent
+        .map((p) =>
+          historyRowHTML({
+            trackId: p.trackId,
+            trackName: p.trackName,
+            artist: `${p.artist} · ouvinte ${p.userId}`,
+            playedAt: p.playedAt,
+          }),
+        )
+        .join("")
+    : emptyStateHTML("Nenhuma reprodução no período.");
+
+  document.getElementById("an-cql").textContent = data.query;
+  document.getElementById("an-result").textContent =
+    `${data.totalPlays} linhas lidas de UMA partição (artista_id = '${data.artistId}') em ${data.elapsedMs} ms\n\n` +
+    data.recent
+      .map(
+        (p) =>
+          `artista_id=${data.artistId} | reproduzido_em=${p.playedAt} | usuario_id=${p.userId} | ${p.trackName}`,
+      )
+      .join("\n");
 }
 
 // ============================================================
@@ -696,7 +832,10 @@ async function checkConnection() {
     const data = await api("/api/health");
     if (data && data.redis === "connected") {
       badge.className = "status-pill connected";
-      text.textContent = "Redis Ativo";
+      text.textContent =
+        data.cassandra === "connected"
+          ? "Redis + Cassandra"
+          : "Redis Ativo · Cassandra off";
     } else {
       badge.className = "status-pill disconnected";
       text.textContent = "Redis Offline";

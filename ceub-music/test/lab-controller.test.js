@@ -109,7 +109,7 @@ test("a slow response from the previous profile cannot replace the current inspe
   assert.equal(element("lab-refresh").disabled, false);
   assert.match(
     element("lab-authors").textContent,
-    /Arthur Araujo.*Guilherme Leony.*Luan Jywago/,
+    /Arthur Araujo.*Guilherme Leony.*Luan Jywago.*Daniel Cezar/,
   );
 });
 

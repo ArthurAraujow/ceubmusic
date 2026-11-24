@@ -1,18 +1,21 @@
 {
   "name": "ceub-music",
   "version": "2.0.0",
-  "description": "CEUB Music — Plataforma de Streaming com Redis NoSQL",
+  "description": "CEUB Music — Plataforma de Streaming com Redis (Chave-Valor) + Cassandra (Wide-Column)",
   "main": "server.js",
   "scripts": {
     "dev": "node server.js",
     "seed": "node seed.js",
     "start": "node server.js",
+    "dump": "node scripts/dump-redis.js",
+    "dump:cassandra": "node scripts/dump-cassandra.js",
     "profiles": "node scripts/sync-profiles.js",
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
+    "cassandra-driver": "^4.10.0",
+    "cors": "^2.8.5",
     "express": "^4.21.0",
-    "ioredis": "^5.4.1",
-    "cors": "^2.8.5"
+    "ioredis": "^5.4.1"
   }
 }

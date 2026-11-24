@@ -1,0 +1,40 @@
+# CEUB Music — bancos NoSQL do projeto
+#   docker compose up -d      → sobe Redis (Chave-Valor) e Cassandra (Wide-Column)
+#   docker compose ps         → status (Cassandra fica "healthy" em ~1 min)
+#   docker compose stop       → desliga sem apagar os dados
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: ceub-redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"] # persistência AOF
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+
+  cassandra:
+    image: cassandra:4.1
+    container_name: ceub-cassandra
+    ports:
+      - "9042:9042"
+    environment:
+      CASSANDRA_CLUSTER_NAME: CEUBMusic
+      CASSANDRA_DC: datacenter1
+      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+      MAX_HEAP_SIZE: 512M # limita memória para rodar em notebook
+      HEAP_NEWSIZE: 128M
+    volumes:
+      - cassandra-data:/var/lib/cassandra
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -e 'DESCRIBE KEYSPACES' > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+
+volumes:
+  redis-data:
+  cassandra-data:
